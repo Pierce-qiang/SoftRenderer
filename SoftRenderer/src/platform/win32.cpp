@@ -216,8 +216,8 @@ static void window_display()
 	//TextOut(window->mem_dc, 300, 50, "Project Name:SRender", strlen("Project Name:SRender"));
 	//TextOut(window->mem_dc, 300, 80, "Author:Lei", strlen("Author:Lei Sun"));
 	TextOut(window->mem_dc, 20, 20,
-		TEXT("control:hold left buttion to rotate, right button to pan"),
-		strlen("Control:hold left buttion to rotate, right button to pan"));
+		TEXT("control:hold left buttion to rotate, right button to translate target"),
+		strlen("Control:hold left buttion to rotate, right button to translate target"));
 
 	// 把兼容性DC的数据传到真正的DC上
 	BitBlt(hDC, 0, 0, window->width, window->height, window->mem_dc, 0, 0, SRCCOPY);

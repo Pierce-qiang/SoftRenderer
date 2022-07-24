@@ -49,6 +49,8 @@ public:
 public:
 	float e[3];
 };
+typedef vec3 Color3;
+typedef vec3 Point3;
 
 class vec4 {
 public:
@@ -68,6 +70,7 @@ public:
 public:
 	float e[4];
 };
+typedef vec4 Color4;
 
 class mat3 {
 public:
@@ -122,6 +125,7 @@ double dot(const vec3& u, const vec3& v);
 vec3 cross(const vec3& u, const vec3& v);
 vec3 unit_vector(const vec3& v);
 vec3 cwise_product(const vec3& a, const vec3& b);
+vec3 vec3_clamp(const vec3& v, float minval = 0, float maxVal = 1.0);
 
 /* vec4 related functions */
 std::ostream& operator<<(std::ostream& out, const vec4& v);

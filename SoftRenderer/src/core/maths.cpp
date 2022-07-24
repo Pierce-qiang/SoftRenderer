@@ -99,6 +99,14 @@ vec3 operator/(vec3 v, double t)
 {
 	return (1 / t) * v;
 }
+vec3 vec3_clamp(const vec3& v, float minval, float maxVal) {
+	vec3 res;
+	for (int i = 0; i < 3; ++i) {
+		res[i] = std::max(std::min(v[i], maxVal), minval);
+	}
+	return res;
+}
+
 
 double dot(const vec3& u, const vec3& v)
 {
@@ -547,21 +555,19 @@ mat4 mat4_ortho(float left, float right, float bottom, float top,
  *
  * see http://www.songho.ca/opengl/gl_projectionmatrix.html
  *
- * note: my implementation is based on right-handed system, so it is a little different
+ * 
  */
-// right hand near and far is pos
+// right hand near and far is pos, near map to -1, far map to 1
 mat4 mat4_perspective(float fovy, float aspect, float near, float far)
 {
 	mat4 m = mat4::identity();
 	fovy = fovy / 180.0 * PI;
-	float t = fabs(near) * tan(fovy / 2);
-	float r = aspect * t;
-
-	m[0][0] = near / r;
-	m[1][1] = near / t;
-	m[2][2] = (near + far) / (near - far);
-	m[2][3] = 2 * near * far / (far - near);
-	m[3][2] = 1; 
+	float inv_t = 1.0 / tan(fovy * 0.5f);
+	m[0][0] = inv_t / aspect;
+	m[1][1] = inv_t;
+	m[2][2] = -(near + far) / (far - near);
+	m[2][3] = -2 * near * far / (far - near);
+	m[3][2] = -1; 
 	m[3][3] = 0;
 	return m;
 }
