@@ -8,8 +8,8 @@ Learning Software Rasterization \
  - rasterize func
  - texture load
  - basic model, basic shader to handle data
- - complete pipeline including backface clipping, clipping space interpolate and clipping, \
-	larger z clipping    <- current
+ - complete pipeline including backface clipping, clipping space interpolate and clipping, larger z clipping    
+--------------------------- current --------------------
  - load complex model
  - Blin-PhongShader and PBR shader
  - ...
