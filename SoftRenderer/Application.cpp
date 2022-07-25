@@ -4,54 +4,13 @@
 #include "./src/include/mesh.h"
 #include "./src/include/camera.h"
 #include "./src/include/params.h"
+#include "./src/include/pipeline.h"
 
 using namespace std;
 
 
 void clear_zbuffer(int width, int height, float* zbuffer);
 void clear_framebuffer(int width, int height, unsigned char* framebuffer);
-void set_color(unsigned char* framebuffer, int x, int y, Color3 color, bool inversey = true)
-{
-	// the origin for pixel is bottom-left, but the framebuffer index counts from top-left
-	int index;
-	if(inversey)
-		index = ((WINDOW_HEIGHT - y - 1) * WINDOW_WIDTH + x) * 4;
-	else
-		index = (y * WINDOW_WIDTH + x) * 4;
-
-	for (int i = 0; i < 3; i++)
-		framebuffer[index + i] = float_clamp(static_cast<int>(color[i]*255.999),0,255) ;
-}
-void set_rectangle(unsigned char* framebuffer, int x1,int y1, int x2,int y2, const Color3& color) {
-	for (int i = y1; i <= y2; i++) {
-		for (int j = x1; j <= x2; ++j) {
-			set_color(framebuffer, i, j, color);
-		}
-	}
-}
-
-vec4 Barycentric(float x,float y, const vec4* v) {
-	float alpha, beta, gamma;
-	alpha = (x * (v[1].y() - v[2].y()) + (v[2].x() - v[1].x()) * y + v[1].x() * v[2].y() - v[2].x() * v[1].y()) / (v[0].x() * (v[1].y() - v[2].y()) + (v[2].x() - v[1].x()) * v[0].y() + v[1].x() * v[2].y() - v[2].x() * v[1].y());
-	beta = (x * (v[2].y() - v[0].y()) + (v[0].x() - v[2].x()) * y + v[2].x() * v[0].y() - v[0].x() * v[2].y()) / (v[1].x() * (v[2].y() - v[0].y()) + (v[0].x() - v[2].x()) * v[1].y() + v[2].x() * v[0].y() - v[0].x() * v[2].y());
-	gamma = 1 - alpha - beta;
-	float inv_z = alpha / v[0][2] + beta / v[1][2] + gamma / v[2][2];
-	alpha /= (v[0][2] * inv_z);
-	beta /= (v[1][2] * inv_z);
-	gamma /= (v[2][2] * inv_z);
-
-	return { alpha,beta,gamma,inv_z };
-}
-
-//void set_meshes(const Mesh& mesh, const Color3& color) {
-//	const auto& faces = mesh.faces;
-//	const auto& points = mesh.points;
-//	for (int i = 0; i < faces.size(); ++i) {
-//		for (int i = 0; i < 3; ++i) {
-//			set
-//		}
-//	}
-//}
 
 
 int main(){
@@ -69,8 +28,34 @@ int main(){
 	int num_frames = 0;
 	float print_time = platform_get_time();
 
-	vec3 mytriangle[3] = { {-0.5,1,0},{0.5,1,0},{0,2,0} };
-	vec3 colors[3] = { {1,0,0},{0,1,0},{0,0,1} };
+	std::vector<vec3> myverts = {
+		{0.5f,  0.5f, 0.0f},  // top right
+		{ 0.5f, -0.5f, 0.0f},  // bottom right
+		{-0.5f, -0.5f, 0.0f},  // bottom left
+		{-0.5f,  0.5f, 0.0f}   // top left 
+	};
+	std::vector<vec2> myuv = {
+		{1,1},
+		{1,0},
+		{0,0},
+		{0,1}
+	};
+
+	std::vector<vec3> mynormal = {
+		{1,0,0}
+	};
+
+	std::vector<std::vector<int>> myface = {
+		{0,0,0, 3,3,0, 1,1,0},	// first triangle
+		{1,1,0, 3,3,0, 2,2,0}  // second triangle
+	};
+
+	shared_ptr<Model> model = make_shared<Model>(myverts, myuv, mynormal, myface);
+	model->diffusemap = make_shared<Texture>("E:/c++/SoftRenderer/SoftRenderer/src/resource/awesomeface.png");
+	shared_ptr<IShader> shader = make_shared<PhongShader>();
+	shader->payload.camera = camera;
+	shader->payload.model = model;
+
 	while (!window->is_close)
 	{
 		//clear buffer
@@ -80,35 +65,16 @@ int main(){
 		//handle events
 		camera->handle_event();
 
+		//update matrix
+		shader->payload.camera_perp_matrix = shader->payload.camera->get_Perspective();
+		shader->payload.mvp_matrix = shader->payload.camera->get_VPMatrix();
+		
 		
 		//draw
-		vec4 outTriangle[3];
-		int x1 = INT_MAX, y1 = INT_MAX, x2 = 0, y2 = 0;
-		for (int i = 0; i < 3; ++i) {
-			mat4 vp = camera->get_VPMatrix();
-			outTriangle[i] = vp * to_vec4(mytriangle[i],1);
-			outTriangle[i] /= outTriangle[i][3];
-			outTriangle[i][0] = (outTriangle[i][0] + 1) / 2 * width;
-			outTriangle[i][1] = (outTriangle[i][1] + 1) / 2 * height;
-			x1 = min(x1, (int)outTriangle[i][0]);
-			x2 = max(x2,(int)outTriangle[i][0]);
-			y1 = min(y1,(int)outTriangle[i][1]);
-			y2 = max(y2,(int)outTriangle[i][1]);
+		for(int i = 0; i < model->nfaces(); i++)
+		{
+			draw_triangles(framebuffer, zbuffer, shader.get(), i);
 		}
-		x1 = max(x1, 0), x2 = min(x2, width - 1);
-		y1 = max(y1, 0), y2 = min(y2, height - 1);
-		//barycentric
-		for (int i = y1; i <= y2; ++i) {
-			for (int j = x1; j <= x2; ++j) {
-				auto bari = Barycentric(j, i, outTriangle);
-				//cout << bari << endl;
-				if (bari[0] < -EPSILON || bari[1] < -EPSILON || bari[2] < -EPSILON) continue;
-				Color3 color = bari[0] * colors[0] + bari[1] * colors[1] + bari[2] * colors[2];
-				set_color(framebuffer, j, i, color);
-			}
-		}
-		
-		
 
 
 		//calculate frames and time

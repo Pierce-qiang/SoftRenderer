@@ -259,7 +259,7 @@ std::ostream& operator<<(std::ostream& out, const mat3& m)
 }
 
 /* mat4 class member functions */
-mat4::mat4() {}
+mat4::mat4(){}
 vec4 mat4::operator[](int i)const { return rows[i]; }
 vec4& mat4::operator[](int i) { return rows[i]; }
 
