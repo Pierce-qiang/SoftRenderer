@@ -34,6 +34,9 @@ Color3 Texture::value(const vec2& uv)const
     if (i >= width)  i = width - 1;
     if (j >= height) j = height - 1;
 
+    i = std::max(i, 0);
+    j = std::max(j, 0);
+
     const auto color_scale = 1.0 / 255.0;
     auto pixel = data + j * bytes_per_scanline + i * bytes_per_pixel;
 

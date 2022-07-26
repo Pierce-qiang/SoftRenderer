@@ -37,13 +37,19 @@ public:
 	std::vector<vec3> normals;
 	std::vector<vec2> uvs;
 
+	bool is_skybox;
+
+
 	//map
 	int is_from_mmd;
-	std::shared_ptr<Texture> diffusemap;
-	std::shared_ptr<Texture> normalmap;
+	Texture* diffusemap = nullptr;
+	Texture* normalmap = nullptr;
 	Texture* specularmap;
 	Texture* roughnessmap;
 	Texture* metalnessmap;
 	Texture* occlusion_map;
 	Texture* emision_map;
+
+private:
+	void create_map(const char* filename);
 };

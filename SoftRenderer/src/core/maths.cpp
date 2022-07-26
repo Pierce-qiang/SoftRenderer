@@ -178,7 +178,6 @@ vec4 operator*(const vec4& v, double t)
 }
 
 /* mat3 class member functions */
-mat3::mat3() {}
 vec3 mat3::operator[](int i)const { return rows[i]; }
 vec3& mat3::operator[](int i) { return rows[i]; }
 
@@ -568,6 +567,22 @@ mat4 mat4_perspective(float fovy, float aspect, float near, float far)
 	m[2][2] = -(near + far) / (far - near);
 	m[2][3] = -2 * near * far / (far - near);
 	m[3][2] = -1; 
+	m[3][3] = 0;
+	return m;
+}
+
+mat4 mat4_perspective_invz(float fovy, float aspect, float near, float far)
+{
+	mat4 m = mat4::identity();
+	fovy = fovy / 180.0 * PI;
+	float t = fabs(near) * tan(fovy / 2);
+	float r = aspect * t;
+
+	m[0][0] = near / r;
+	m[1][1] = near / t;
+	m[2][2] = (near + far) / (near - far);
+	m[2][3] = 2 * near * far / (far - near);
+	m[3][2] = 1;
 	m[3][3] = 0;
 	return m;
 }

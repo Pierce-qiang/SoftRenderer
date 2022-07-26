@@ -9,7 +9,12 @@ Camera::~Camera()
 
 mat4 Camera::get_Perspective()const 
 {
+#ifdef INVZ
+	return mat4_perspective_invz(vfov, aspect, -nearplane, -farplane);
+#else
 	return mat4_perspective(vfov, aspect, nearplane, farplane);
+#endif 
+
 }
 mat4 Camera::get_ViewMatrix()const 
 {

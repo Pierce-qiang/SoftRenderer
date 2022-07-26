@@ -12,6 +12,7 @@ using namespace std;
 void clear_zbuffer(int width, int height, float* zbuffer);
 void clear_framebuffer(int width, int height, unsigned char* framebuffer);
 
+int num_frames = 0;
 
 int main(){
 	int width = WINDOW_WIDTH, height = WINDOW_HEIGHT;
@@ -25,36 +26,52 @@ int main(){
 
 	// render loop
 	// -----------
-	int num_frames = 0;
+	
 	float print_time = platform_get_time();
 
-	std::vector<vec3> myverts = {
-		{0.5f,  0.5f, 0.0f},  // top right
-		{ 0.5f, -0.5f, 0.0f},  // bottom right
-		{-0.5f, -0.5f, 0.0f},  // bottom left
-		{-0.5f,  0.5f, 0.0f}   // top left 
-	};
-	std::vector<vec2> myuv = {
-		{1,1},
-		{1,0},
-		{0,0},
-		{0,1}
-	};
+	//std::vector<vec3> myverts = {
+	//	{0.5f,  0.5f, 0.0f},  // top right
+	//	{ 0.5f, -0.5f, 0.0f},  // bottom right
+	//	{-0.5f, -0.5f, 0.0f},  // bottom left
+	//	{-0.5f,  0.5f, 0.0f}   // top left 
+	//};
+	//std::vector<vec2> myuv = {
+	//	{1,1},
+	//	{1,0},
+	//	{0,0},
+	//	{0,1}
+	//};
 
-	std::vector<vec3> mynormal = {
-		{1,0,0}
-	};
+	//std::vector<vec3> mynormal = {
+	//	{1,0,0}
+	//};
 
-	std::vector<std::vector<int>> myface = {
-		{0,0,0, 3,3,0, 1,1,0},	// first triangle
-		{1,1,0, 3,3,0, 2,2,0}  // second triangle
-	};
+	//std::vector<std::vector<int>> myface = {
+	//	{0,0,0, 3,3,0, 1,1,0},	// first triangle
+	//	{1,1,0, 3,3,0, 2,2,0}  // second triangle
+	//};
 
-	shared_ptr<Model> model = make_shared<Model>(myverts, myuv, mynormal, myface);
-	model->diffusemap = make_shared<Texture>("E:/c++/SoftRenderer/SoftRenderer/src/resource/awesomeface.png");
+	//shared_ptr<Model> model = make_shared<Model>(myverts, myuv, mynormal, myface);
+	//model->diffusemap = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/awesomeface.jpg");
+
+	std::vector<shared_ptr<Model>> models;
+	{
+	//	models.push_back(make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuabody.obj"));
+	//	/*models.back()->diffusemap = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuabody_diffuse.tga");*/
+
+	///*	models[1] = make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuaface.obj");*/
+	//	/*models[1]->diffusemap = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuaface_diffuse.tga");*/
+
+	//	models.push_back(make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuahair.obj"));
+	//	/*models.back()->diffusemap = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuahair_diffuse.tga");*/
+
+	//	models.push_back(make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuacloak.obj"));
+	//	/*models.back()->diffusemap = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuacloak_diffuse.tga");*/
+		models.push_back(make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/luciya.obj"));
+	}
+
 	shared_ptr<IShader> shader = make_shared<PhongShader>();
 	shader->payload.camera = camera;
-	shader->payload.model = model;
 
 	while (!window->is_close)
 	{
@@ -68,13 +85,22 @@ int main(){
 		//update matrix
 		shader->payload.camera_perp_matrix = shader->payload.camera->get_Perspective();
 		shader->payload.mvp_matrix = shader->payload.camera->get_VPMatrix();
-		
+		shader->payload.model_matrix = mat4::identity();
+		shader->payload.model_matrix_inv_trans = mat4::identity();
 		
 		//draw
-		for(int i = 0; i < model->nfaces(); i++)
-		{
-			draw_triangles(framebuffer, zbuffer, shader.get(), i);
+		for (int i = 0; i < models.size(); ++i) {
+			shader->payload.model = models[i];
+			for (int j = 0; j < models[i]->nfaces(); j++)
+			{
+				draw_triangles(framebuffer, zbuffer, shader.get(), j);
+			}
 		}
+		/*shader->payload.model = model;
+		for (int j = 0; j < model->nfaces(); j++)
+		{
+			draw_triangles(framebuffer, zbuffer, shader.get(), j);
+		}*/
 
 
 		//calculate frames and time
@@ -111,7 +137,11 @@ int main(){
 
 void clear_zbuffer(int width, int height, float* zbuffer) {
 	for (int i = 0; i < width * height; ++i) {
+#ifdef	ViewZ
+		zbuffer[i] = Farplane;
+#else	
 		zbuffer[i] = 1.0;
+#endif 
 	}
 }
 void clear_framebuffer(int width, int height, unsigned char* framebuffer) {

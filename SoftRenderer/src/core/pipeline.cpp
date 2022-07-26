@@ -32,12 +32,16 @@ static vec4 Barycentric(float x, float y, const vec3* v) {
 	alpha = (x * (v[1].y() - v[2].y()) + (v[2].x() - v[1].x()) * y + v[1].x() * v[2].y() - v[2].x() * v[1].y()) / (v[0].x() * (v[1].y() - v[2].y()) + (v[2].x() - v[1].x()) * v[0].y() + v[1].x() * v[2].y() - v[2].x() * v[1].y());
 	beta = (x * (v[2].y() - v[0].y()) + (v[0].x() - v[2].x()) * y + v[2].x() * v[0].y() - v[0].x() * v[2].y()) / (v[1].x() * (v[2].y() - v[0].y()) + (v[0].x() - v[2].x()) * v[1].y() + v[2].x() * v[0].y() - v[0].x() * v[2].y());
 	gamma = 1 - alpha - beta;
-	float inv_z = alpha / v[0][2] + beta / v[1][2] + gamma / v[2][2];
-	alpha /= (v[0][2] * inv_z);
-	beta /= (v[1][2] * inv_z);
-	gamma /= (v[2][2] * inv_z);
+#ifdef TRUEINTER
+	return { alpha,beta,gamma, 1.0 };
+#else
+	float z = 1.0 / (alpha / v[0][2] + beta / v[1][2] + gamma / v[2][2]);
+	alpha *= z / v[0][2];
+	beta *= z / v[1][2];
+	gamma *= z / v[2][2];
 
-	return { alpha,beta,gamma, 1.0f/inv_z };
+	return { alpha,beta,gamma, z };
+#endif 
 }
 
 typedef enum
@@ -47,13 +51,39 @@ typedef enum
 	X_LEFT,
 	Y_TOP,
 	Y_BOTTOM,
+#ifdef INVZ
+	Z_NEAR,
+	Z_FAR
+#else
 	Z_FAR,
 	Z_NEAR
+#endif
 } clip_plane;
 
-// in my implementation, all the w is negative, so here is a little different from openGL
 static bool is_inside_plane(clip_plane c_plane, vec4 vertex)
 {
+#ifdef INVZ
+	switch (c_plane)
+	{
+	case W_PLANE:
+		return vertex.w() <= -EPSILON;
+	case X_RIGHT:
+		return vertex.x() >= vertex.w();
+	case X_LEFT:
+		return vertex.x() <= -vertex.w();
+	case Y_TOP:
+		return vertex.y() >= vertex.w();
+	case Y_BOTTOM:
+		return vertex.y() <= -vertex.w();
+	case Z_NEAR:
+		return vertex.z() >= vertex.w();
+	case Z_FAR:
+		return vertex.z() <= -vertex.w();
+	default:
+		return 0;
+	}
+
+#else
 	switch (c_plane)
 	{
 	case W_PLANE:
@@ -73,11 +103,33 @@ static bool is_inside_plane(clip_plane c_plane, vec4 vertex)
 	default:
 		return false;
 	}
+#endif 
 }
 // for the deduction of intersection ratio
 // refer to: https://fabiensanglard.net/polygon_codec/clippingdocument/Clipping.pdf
 static float get_intersect_ratio(vec4 prev, vec4 curv, clip_plane c_plane)
 {
+#ifdef INVZ
+	switch (c_plane)
+	{
+	case W_PLANE:
+		return (prev.w() + EPSILON) / (prev.w() - curv.w());
+	case X_RIGHT:
+		return (prev.w() - prev.x()) / ((prev.w() - prev.x()) - (curv.w() - curv.x()));
+	case X_LEFT:
+		return (prev.w() + prev.x()) / ((prev.w() + prev.x()) - (curv.w() + curv.x()));
+	case Y_TOP:
+		return (prev.w() - prev.y()) / ((prev.w() - prev.y()) - (curv.w() - curv.y()));
+	case Y_BOTTOM:
+		return (prev.w() + prev.y()) / ((prev.w() + prev.y()) - (curv.w() + curv.y()));
+	case Z_NEAR:
+		return (prev.w() - prev.z()) / ((prev.w() - prev.z()) - (curv.w() - curv.z()));
+	case Z_FAR:
+		return (prev.w() + prev.z()) / ((prev.w() + prev.z()) - (curv.w() + curv.z()));
+	default:
+		return 0;
+	}
+#else
 	switch (c_plane)
 	{
 	case W_PLANE:
@@ -97,6 +149,9 @@ static float get_intersect_ratio(vec4 prev, vec4 curv, clip_plane c_plane)
 	default:
 		return 0;
 	}
+#endif // INVZ
+
+
 }
 
 static int clip_with_plane(clip_plane c_plane, int num_vert, payload_t& payload)
@@ -159,8 +214,15 @@ static int homo_clipping(payload_t& payload)
 	num_vertex = clip_with_plane(X_LEFT, num_vertex, payload);
 	num_vertex = clip_with_plane(Y_TOP, num_vertex, payload);
 	num_vertex = clip_with_plane(Y_BOTTOM, num_vertex, payload);
+#ifdef INVZ
+	num_vertex = clip_with_plane(Z_NEAR, num_vertex, payload);
+	num_vertex = clip_with_plane(Z_FAR, num_vertex, payload);
+#else
+
 	num_vertex = clip_with_plane(Z_FAR, num_vertex, payload);
 	num_vertex = clip_with_plane(Z_NEAR, num_vertex, payload);
+#endif // INVZ
+
 	return num_vertex;
 }
 
@@ -181,14 +243,17 @@ static void rasterizeSingleThread(vec4* clipcoord_attri, unsigned char* framebuf
 		ndc_pos[i][2] = clipcoord_attri[i][2] / clipcoord_attri[i].w();
 	}
 
+#ifdef CLIPPING
 
+#else
 	// simple clipping to test whether cliping method work
 	for (int i = 0; i < 3; i++)
 	{	// consider float error, otherwise, it will flicker
-		if (ndc_pos[i][0] < -1-EPSILON || ndc_pos[i][0]>1+ EPSILON) return;
-		if (ndc_pos[i][1] < -1-EPSILON || ndc_pos[i][1]>1+ EPSILON) return;
-		if (ndc_pos[i][2] < -1-EPSILON || ndc_pos[i][2]>1+ EPSILON) return;
+		if (ndc_pos[i][0] < -1 - EPSILON || ndc_pos[i][0]>1 + EPSILON) return;
+		if (ndc_pos[i][1] < -1 - EPSILON || ndc_pos[i][1]>1 + EPSILON) return;
+		if (ndc_pos[i][2] < -1 - EPSILON || ndc_pos[i][2]>1 + EPSILON) return;
 	}
+#endif // CLIPPING
 
 
 	// viewport transformation
@@ -196,10 +261,27 @@ static void rasterizeSingleThread(vec4* clipcoord_attri, unsigned char* framebuf
 	{
 		screen_pos[i][0] = 0.5 * (width - 1) * (ndc_pos[i][0] + 1.0);
 		screen_pos[i][1] = 0.5 * (height - 1) * (ndc_pos[i][1] + 1.0);
-		screen_pos[i][2] = ndc_pos[i][2]*0.5 +0.5; // 0~1
+		//screen_pos[i][2] = ndc_pos[i][2]*0.5+0.5; // 0~1
+#ifdef INVZ
+#ifdef ViewZ
+		screen_pos[i][2] = -clipcoord_attri[i][3];
+#else
+		screen_pos[i][2] = ndc_pos[i][2] * 0.5 - 0.5;
+		screen_pos[i][2] *= -1;
+#endif // ViewZ
+
+#else
+
+	#ifdef ViewZ
+			screen_pos[i][2] = clipcoord_attri[i][3];
+	#else
+			screen_pos[i][2] = ndc_pos[i][2] * 0.5 + 0.5;
+	#endif // ViewZ
+
+#endif // INVZ
 	}
 	
-	if (is_back_facing(screen_pos))
+	if (is_back_facing(ndc_pos))
 		return;
 	// bounding box
 	float xmin = 10000, xmax = -10000, ymin = 10000, ymax = -10000;
@@ -216,16 +298,23 @@ static void rasterizeSingleThread(vec4* clipcoord_attri, unsigned char* framebuf
 	for (int x = xs; x <= xe; ++x) {
 		for (int y = ys; y <= ye; ++y) {
 			auto bari = Barycentric(x + 0.5, y + 0.5, screen_pos);
-			float alpha = bari[0], beta = bari[1], gamma = bari[2], depth = bari[3];
+			float alpha = bari[0], beta = bari[1], gamma = bari[2];
+			
+#ifdef TRUEINTER
+			float normalizer = 1.0 / (alpha / clipcoord_attri[0].w() + beta / clipcoord_attri[1].w() + gamma / clipcoord_attri[2].w());
 
-			/*static float time = platform_get_time();
-			if (platform_get_time() - time > 0.5f && x ==xs &&y ==ys) {
-				printf("alpha: %3f, beta: %3f, gamma: %3f, depth: %3f \n", alpha, beta, gamma, depth);
-				time = platform_get_time();
-			}*/
+			float depth = (alpha * screen_pos[0].z() / clipcoord_attri[0].w() + beta * screen_pos[1].z() / clipcoord_attri[1].w() +
+				gamma * screen_pos[2].z() / clipcoord_attri[2].w()) * normalizer;
 
+#else
+			float depth = bari[3];
+#endif // 
+
+			// add EPSILON can avoid some aliasing
 			if (alpha < -EPSILON || beta < -EPSILON || gamma < -EPSILON) continue;
+
 			int ind = get_index(x, y, width, height);
+
 			if (zbuffer[ind] < depth) continue;
 			zbuffer[ind] = depth;
 			auto color = shader->fragment_shader(alpha, beta, gamma);
@@ -256,6 +345,10 @@ void draw_triangles(unsigned char* framebuffer, float* zbuffer, IShader* shader,
 	for (int i = 0; i < 3; ++i) {
 		shader->vertex_shader(nface, i);
 	}
+
+#ifdef CLIPPING
+	 // CLIPPING
+
 	// homo_clipping
 	int num_vertex = homo_clipping(shader->payload);
 
@@ -270,4 +363,7 @@ void draw_triangles(unsigned char* framebuffer, float* zbuffer, IShader* shader,
 
 		rasterizeSingleThread(shader->payload.clipcoord_attri, framebuffer, zbuffer, shader);
 	}
+#else
+	rasterizeSingleThread(shader->payload.clipcoord_attri, framebuffer, zbuffer, shader);
+#endif
 }

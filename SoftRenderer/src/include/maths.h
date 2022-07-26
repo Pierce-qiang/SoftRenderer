@@ -74,7 +74,7 @@ typedef vec4 Color4;
 
 class mat3 {
 public:
-	mat3();
+	mat3(){}
 
 	vec3& operator[](int i);
 	vec3 operator[](int i) const;
@@ -150,6 +150,7 @@ mat4 mat4_rotate_z(float angle);
 mat4 mat4_lookat(vec3 eye, vec3 target, vec3 up);
 mat4 mat4_ortho(float left, float right, float bottom, float top, float near, float far);
 mat4 mat4_perspective(float fovy, float aspect, float near, float far);
+mat4 mat4_perspective_invz(float fovy, float aspect, float near, float far);
 
 /* untility functions */
 float float_max(float a, float b);
