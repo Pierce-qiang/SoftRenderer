@@ -24,14 +24,6 @@ public:
 
 };
 
-class PBRShader :public IShader
-{
-public:
-	void vertex_shader(int nfaces, int nvertex)override;
-	vec3 fragment_shader(float alpha, float beta, float gamma)override;
-	vec3 direct_fragment_shader(float alpha, float beta, float gamma);
-};
-
 class SkyboxShader :public IShader
 {
 public:

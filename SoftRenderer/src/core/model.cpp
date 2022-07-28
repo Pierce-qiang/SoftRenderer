@@ -101,19 +101,7 @@ float Model::specular(vec2 uv) const
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-Model::Model(const char* filename, int is_skybox)
-	: is_skybox(is_skybox)
+Model::Model(const char* filename)
 {
 	std::ifstream in;
 	in.open(filename, std::ifstream::in);
@@ -173,78 +161,113 @@ Model::Model(const char* filename, int is_skybox)
 	}
 	std::cerr << "# v# " << verts.size() << " f# " << faces.size() << " vt# " << uvs.size() << " vn# " << normals.size() << std::endl;
 
-	/*create_map(filename);
-
-	environment_map = NULL;
-	if (is_skybox)
-	{
-		environment_map = new cubemap_t();
-		load_cubemap(filename);
-	}*/
+	create_map(filename);
 }
-//void Model::create_map(const char* filename)
-//{
-//	diffusemap = NULL;
-//	normalmap = NULL;
-//	specularmap = NULL;
-//	roughnessmap = NULL;
-//	metalnessmap = NULL;
-//	occlusion_map = NULL;
-//	emision_map = NULL;
-//
-//	std::string texfile(filename);
-//	size_t dot = texfile.find_last_of(".");
-//
-//	texfile = texfile.substr(0, dot) + std::string("_diffuse.tga");
-//	if (_access(texfile.data(), 0) != -1) // file exist?
-//	{
-//		diffusemap = new Texture();
-//		load_texture(filename, "_diffuse.tga", diffusemap);
-//	}
-//
-//	texfile = texfile.substr(0, dot) + std::string("_normal.tga");
-//	if (_access(texfile.data(), 0) != -1)
-//	{
-//		normalmap = new TGAImage();
-//		load_texture(filename, "_normal.tga", normalmap);
-//	}
-//
-//	texfile = texfile.substr(0, dot) + std::string("_spec.tga");
-//	if (_access(texfile.data(), 0) != -1)
-//	{
-//		specularmap = new TGAImage();
-//		load_texture(filename, "_spec.tga", specularmap);
-//	}
-//
-//	texfile = texfile.substr(0, dot) + std::string("_roughness.tga");
-//	if (_access(texfile.data(), 0) != -1)
-//	{
-//		roughnessmap = new TGAImage();
-//		load_texture(filename, "_roughness.tga", roughnessmap);
-//	}
-//
-//	texfile = texfile.substr(0, dot) + std::string("_metalness.tga");
-//	if (_access(texfile.data(), 0) != -1)
-//	{
-//		metalnessmap = new TGAImage();
-//		load_texture(filename, "_metalness.tga", metalnessmap);
-//	}
-//
-//	texfile = texfile.substr(0, dot) + std::string("_emission.tga");
-//	if (_access(texfile.data(), 0) != -1)
-//	{
-//		emision_map = new TGAImage();
-//		load_texture(filename, "_emission.tga", emision_map);
-//	}
-//
-//	texfile = texfile.substr(0, dot) + std::string("_occlusion.tga");
-//	if (_access(texfile.data(), 0) != -1)
-//	{
-//		occlusion_map = new TGAImage();
-//		load_texture(filename, "_occlusion.tga", metalnessmap);
-//	}
-//}
-//
+
+// Can refactor
+void Model::create_map(const char* filename)
+{
+	diffusemap = NULL;
+	normalmap = NULL;
+	specularmap = NULL;
+	roughnessmap = NULL;
+	metalnessmap = NULL;
+	occlusion_map = NULL;
+	emision_map = NULL;
+
+	std::string texfile(filename);
+	size_t dot = texfile.find_last_of(".");
+	std::string texfileroot = texfile.substr(0, dot);
+	texfile = texfileroot + std::string("_diffuse.jpg");
+	if (_access(texfile.data(), 0) != -1) // file exist?
+	{
+		diffusemap = new Texture(texfile.c_str());
+	}
+	texfile = texfileroot + std::string("_diffuse.png");
+	if (_access(texfile.data(), 0) != -1) // file exist?
+	{
+		diffusemap = new Texture(texfile.c_str());
+	}
+
+	texfile = texfileroot + std::string("_normal.jpg");
+	if (_access(texfile.data(), 0) != -1)
+	{
+		normalmap = new Texture(texfile.c_str());
+	}
+	texfile = texfileroot + std::string("_normal.png");
+	if (_access(texfile.data(), 0) != -1)
+	{
+		normalmap = new Texture(texfile.c_str());
+	}
+
+	texfile = texfileroot + std::string("_specular.jpg");
+	if (_access(texfile.data(), 0) != -1)
+	{
+		specularmap = new Texture(texfile.c_str());
+	}
+	texfile = texfileroot + std::string("_specular.png");
+	if (_access(texfile.data(), 0) != -1)
+	{
+		specularmap = new Texture(texfile.c_str());
+	}
 
 
+	texfile = texfileroot + std::string("_roughness.jpg");
+	if (_access(texfile.data(), 0) != -1)
+	{
+		roughnessmap = new Texture(texfile.c_str());
+	}
 
+	texfile = texfileroot + std::string("_roughness.png");
+	if (_access(texfile.data(), 0) != -1)
+	{
+		roughnessmap = new Texture(texfile.c_str());
+	}
+
+
+	texfile = texfileroot + std::string("_metalness.jpg");
+	if (_access(texfile.data(), 0) != -1)
+	{
+		metalnessmap = new Texture(texfile.c_str());
+	}
+	texfile = texfileroot + std::string("_metalness.png");
+	if (_access(texfile.data(), 0) != -1)
+	{
+		metalnessmap = new Texture(texfile.c_str());
+	}
+
+	texfile = texfileroot + std::string("_emission.jpg");
+	if (_access(texfile.data(), 0) != -1)
+	{
+		emision_map = new Texture(texfile.c_str());
+	}
+	texfile = texfileroot + std::string("_emission.png");
+	if (_access(texfile.data(), 0) != -1)
+	{
+		emision_map = new Texture(texfile.c_str());
+	}
+
+	texfile = texfileroot + std::string("_occlusion.jpg");
+	if (_access(texfile.data(), 0) != -1)
+	{
+		occlusion_map = new Texture(texfile.c_str());
+	}
+	texfile = texfileroot + std::string("_occlusion.png");
+	if (_access(texfile.data(), 0) != -1)
+	{
+		occlusion_map = new Texture(texfile.c_str());
+	}
+}
+
+
+Model::~Model()
+{
+	//map
+	if (diffusemap != nullptr) delete diffusemap;
+	if (normalmap != nullptr) delete normalmap;
+	if (specularmap != nullptr) delete specularmap;
+	if( roughnessmap != nullptr) delete roughnessmap;
+	if( metalnessmap != nullptr) delete metalnessmap;
+	if( occlusion_map != nullptr) delete occlusion_map;
+	if( emision_map != nullptr ) delete emision_map;
+}

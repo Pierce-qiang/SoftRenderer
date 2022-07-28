@@ -7,8 +7,8 @@ class Model
 {
 public:
 	Model(std::vector<vec3>& v, std::vector<vec2>& uv, std::vector<vec3>& normal, std::vector<std::vector<int> > face) : verts(v), uvs(uv), normals(normal), faces(face){}
-	Model(const char* filename, int is_skybox = 0);
-	~Model(){}
+	Model(const char* filename);
+	~Model();
 
 
 	int nverts()const;
@@ -37,17 +37,14 @@ public:
 	std::vector<vec3> normals;
 	std::vector<vec2> uvs;
 
-	bool is_skybox;
-
-
 	//map
 	Texture* diffusemap = nullptr;
 	Texture* normalmap = nullptr;
-	Texture* specularmap;
-	Texture* roughnessmap;
-	Texture* metalnessmap;
-	Texture* occlusion_map;
-	Texture* emision_map;
+	Texture* specularmap = nullptr;
+	Texture* roughnessmap = nullptr;
+	Texture* metalnessmap = nullptr;
+	Texture* occlusion_map = nullptr;
+	Texture* emision_map = nullptr;
 
 private:
 	void create_map(const char* filename);

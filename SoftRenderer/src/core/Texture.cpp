@@ -17,6 +17,14 @@ Texture::Texture(const char* filename)
     bytes_per_scanline = bytes_per_pixel * width;
 }
 
+Texture::~Texture()
+{
+    if (data != nullptr) {
+        stbi_image_free(data);
+    }
+    width = 0, height = 0, bytes_per_scanline = 0;
+}
+
 Color3 Texture::value(const vec2& uv)const
 {
     // If we have no texture data, then return solid cyan as a debugging aid.

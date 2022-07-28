@@ -6,7 +6,7 @@ public:
 	const static int bytes_per_pixel = 4;
 
 	Texture(const char* filename);
-	~Texture() { if(data!=nullptr) delete[] data; width = 0, height = 0, bytes_per_scanline = 0; }
+	~Texture();
 	Color3 value(const vec2& uv)const;
 	
 
