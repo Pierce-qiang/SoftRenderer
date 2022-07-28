@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+/SoftRenderer/.vs/*
+/SoftRenderer/Debug/*
+/SoftRenderer/Release/*
