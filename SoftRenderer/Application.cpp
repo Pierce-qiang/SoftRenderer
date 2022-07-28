@@ -1,7 +1,7 @@
 #include <iostream>
 #include <memory>
 #include "./src/platform/win32.h"
-#include "./src/include/mesh.h"
+
 #include "./src/include/camera.h"
 #include "./src/include/params.h"
 #include "./src/include/pipeline.h"
@@ -11,6 +11,7 @@ using namespace std;
 
 void clear_zbuffer(int width, int height, float* zbuffer);
 void clear_framebuffer(int width, int height, unsigned char* framebuffer);
+Model* createSmileface(const char* filepath);
 
 int num_frames = 0;
 
@@ -29,50 +30,10 @@ int main(){
 	
 	float print_time = platform_get_time();
 
-	//std::vector<vec3> myverts = {
-	//	{0.5f,  0.5f, 0.0f},  // top right
-	//	{ 0.5f, -0.5f, 0.0f},  // bottom right
-	//	{-0.5f, -0.5f, 0.0f},  // bottom left
-	//	{-0.5f,  0.5f, 0.0f}   // top left 
-	//};
-	//std::vector<vec2> myuv = {
-	//	{1,1},
-	//	{1,0},
-	//	{0,0},
-	//	{0,1}
-	//};
-
-	//std::vector<vec3> mynormal = {
-	//	{1,0,0}
-	//};
-
-	//std::vector<std::vector<int>> myface = {
-	//	{0,0,0, 3,3,0, 1,1,0},	// first triangle
-	//	{1,1,0, 3,3,0, 2,2,0}  // second triangle
-	//};
-
-	//shared_ptr<Model> model = make_shared<Model>(myverts, myuv, mynormal, myface);
-	//model->diffusemap = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/awesomeface.jpg");
-
 	std::vector<shared_ptr<Model>> models;
-	{
-	//	models.push_back(make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuabody.obj"));
-	//	models.back()->diffusemap = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuabody_diffuse.tga");
+	models.push_back(make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/backpack/backpack.obj"));
 
-	///*	models[1] = make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuaface.obj");*/
-	//	/*models[1]->diffusemap = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuaface_diffuse.tga");*/
-
-	//	models.push_back(make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuahair.obj"));
-	//	models.back()->diffusemap = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuahair_diffuse.tga");
-
-	//	models.push_back(make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuacloak.obj"));
-	//	models.back()->diffusemap = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuacloak_diffuse.tga");
-		/*models.push_back(make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/luciya.obj"));*/
-		models.push_back(make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/objects/backpack/backpack.obj"));
-		models.back()->diffusemap = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/objects/backpack/diffuse.jpg");
-		models.back()->occlusion_map = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/objects/backpack/ao.jpg");
-		models.back()->occlusion_map = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/objects/backpack/normal.png");
-	}
+	models.push_back(shared_ptr<Model>(createSmileface("E:/c++/SoftRenderer/SoftRenderer/src/resource/awesomeface.jpg")));
 
 	shared_ptr<IShader> shader = make_shared<PhongShader>();
 	shader->payload.camera = camera;
@@ -157,5 +118,32 @@ void clear_framebuffer(int width, int height, unsigned char* framebuffer) {
 			framebuffer[ind + 2] = 80;	//b
 		}
 	}
+}
+Model* createSmileface(const char * filepath) {
+	std::vector<vec3> myverts = {
+		{0.5f,  0.5f, 0.0f},  // top right
+		{ 0.5f, -0.5f, 0.0f},  // bottom right
+		{-0.5f, -0.5f, 0.0f},  // bottom left
+		{-0.5f,  0.5f, 0.0f}   // top left 
+	};
+	std::vector<vec2> myuv = {
+		{1,1},
+		{1,0},
+		{0,0},
+		{0,1}
+	};
+
+	std::vector<vec3> mynormal = {
+		{1,0,0}
+	};
+
+	std::vector<std::vector<int>> myface = {
+		{0,0,0, 3,3,0, 1,1,0},	// first triangle
+		{1,1,0, 3,3,0, 2,2,0}  // second triangle
+	};
+
+	Model* model = new Model(myverts, myuv, mynormal, myface);
+	model->diffusemap = new Texture(filepath);
+	return model;
 }
 

@@ -23,10 +23,3 @@ public:
 	vec3 fragment_shader(float alpha, float beta, float gamma)override;
 
 };
-
-class SkyboxShader :public IShader
-{
-public:
-	void vertex_shader(int nfaces, int nvertex)override;
-	vec3 fragment_shader(float alpha, float beta, float gamma)override;
-};
