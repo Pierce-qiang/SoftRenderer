@@ -41,13 +41,79 @@ std::vector<int> Model::face(int idx) const
 
 Color3 Model::diffuse(const vec2& uv) const
 {
-	if (diffusemap == nullptr) return Color3(1,0,1);
+	if (diffusemap == nullptr) {
+		printf("diffusemap lose!");
+		return { 1,0,1 };
+	}
 	return diffusemap->value(uv);
 }
 
+vec3 Model::normal(vec2 uv) const
+{
+	if (normalmap == nullptr) {
+		printf("normalmap lose!");
+		return { 0,1,0 };
+	}
+	return normalmap->value(uv);
+}
 
-Model::Model(const char* filename, int is_skybox, int is_from_mmd)
-	: is_skybox(is_skybox), is_from_mmd(is_from_mmd)
+float Model::roughness(vec2 uv) const
+{
+	if (roughnessmap == nullptr) {
+		printf("roughnessmap lose!");
+		return { 1 };
+	}
+	return (roughnessmap->value(uv)).norm();
+}
+
+float Model::metalness(vec2 uv) const
+{
+	if ( metalnessmap == nullptr) {
+		printf("metalnessmap lose!");
+		return {1};
+	}
+	return (metalnessmap->value(uv)).norm();
+}
+
+vec3 Model::emission(vec2 uv) const
+{
+	if (emision_map == nullptr) {
+		return { 0,0,0 };
+	}
+	return emision_map->value(uv);
+}
+
+float Model::occlusion(vec2 uv) const
+{
+	if (occlusion_map == nullptr) {
+		return { 1 };
+	}
+	return (occlusion_map->value(uv)).norm();
+}
+
+float Model::specular(vec2 uv) const
+{
+	if (specularmap == nullptr) {
+		printf("specularmap lose!");
+		return { 1 };
+	}
+	return (specularmap->value(uv)).norm();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+Model::Model(const char* filename, int is_skybox)
+	: is_skybox(is_skybox)
 {
 	std::ifstream in;
 	in.open(filename, std::ifstream::in);
@@ -87,8 +153,6 @@ Model::Model(const char* filename, int is_skybox, int is_from_mmd)
 			for (int i = 0; i < 2; i++)
 				iss >> uv[i];
 
-			if (is_from_mmd)
-				uv[1] = 1 - uv[1];
 			uvs.push_back(uv);
 		}
 		else if (!line.compare(0, 2, "f "))

@@ -7,7 +7,7 @@ class Model
 {
 public:
 	Model(std::vector<vec3>& v, std::vector<vec2>& uv, std::vector<vec3>& normal, std::vector<std::vector<int> > face) : verts(v), uvs(uv), normals(normal), faces(face){}
-	Model(const char* filename, int is_skybox = 0, int is_from_mmd = 0);
+	Model(const char* filename, int is_skybox = 0);
 	~Model(){}
 
 
@@ -41,7 +41,6 @@ public:
 
 
 	//map
-	int is_from_mmd;
 	Texture* diffusemap = nullptr;
 	Texture* normalmap = nullptr;
 	Texture* specularmap;

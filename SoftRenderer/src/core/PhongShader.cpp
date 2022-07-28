@@ -1,6 +1,38 @@
 #include "../include/Shader.h"
 #include <cassert>
 
+static vec3 cal_normal(vec3& normal, vec3* world_coords, const vec2* uvs, const vec2& uv, Texture* normal_map)
+{
+	// calculate the difference in UV coordinate
+	float x1 = uvs[1][0] - uvs[0][0];
+	float y1 = uvs[1][1] - uvs[0][1];
+	float x2 = uvs[2][0] - uvs[0][0];
+	float y2 = uvs[2][1] - uvs[0][1];
+	float det = (x1 * y2 - x2 * y1);
+
+	// calculate the difference in world pos
+	vec3 e1 = world_coords[1] - world_coords[0];
+	vec3 e2 = world_coords[2] - world_coords[0];
+
+	vec3 t = e1 * y2 + e2 * (-y1);
+	vec3 b = e1 * (-x2) + e2 * x1;
+	t /= det;
+	b /= det;
+
+	// schmidt orthogonalization
+	normal = unit_vector(normal);
+	t = unit_vector(t - dot(t, normal) * normal);
+	b = unit_vector(b - dot(b, normal) * normal - dot(b, t) * t);
+
+	vec3 sample = normal_map->value(uv);
+	// modify the range from 0 ~ 1 to -1 ~ +1
+	sample = vec3(sample[0] * 2 - 1, sample[1] * 2 - 1, sample[2] * 2 - 1);
+
+	vec3 normal_new = t * sample[0] + b * sample[1] + normal * sample[2];
+	return normal_new;
+}
+
+
 void PhongShader::vertex_shader(int nfaces, int nvertex)
 {
 	vec4 temp_vert = to_vec4(payload.model->vert(nfaces, nvertex), 1.0f);
@@ -44,9 +76,35 @@ vec3 PhongShader::fragment_shader(float alpha, float beta, float gamma)
 	vec3 worldpos = alpha * world_coords[0] + beta * world_coords[1] + gamma * world_coords[2];
 #endif // TRUEINTER
 
+	if (payload.model->normalmap)
+		normal = cal_normal(normal, world_coords, uvs, uv, payload.model->normalmap);
 
-	Color3 color = vec3(1, 1, 1) * std::max(dot(vec3(1, 1, 1), vec3(normal)), 0.0);
 
-	//return  payload.model->diffuse(uv);
-	return color;
+	// get ka,ks,kd
+	vec3 ka(0.35, 0.35, 0.35);
+	vec3 kd = payload.model->diffuse(uv);
+	vec3 ks(0.5, 0.5, 0.5);
+
+	// set light information
+	float p = 150.0;
+	vec3 l = unit_vector(vec3(1, 1, 1));
+	vec3 light_ambient_intensity = kd;
+	vec3 light_diffuse_intensity = vec3(0.9, 0.9, 0.9);
+	vec3 light_specular_intensity = vec3(0.15, 0.15, 0.15);
+
+	vec3 result_color(0, 0, 0);
+	vec3 ambient, diffuse, specular;
+	normal = unit_vector(normal);
+	vec3 v = unit_vector(payload.camera->eye - worldpos);
+	vec3 h = unit_vector(l + v);
+
+
+	ambient = ka * light_ambient_intensity;
+	diffuse = kd * light_diffuse_intensity * float_max(0, dot(l, normal));
+	specular = ks * light_specular_intensity * float_max(0, pow(dot(normal, h), p));
+
+	result_color = (ambient + diffuse + specular);
+
+	return result_color;
+	
 }

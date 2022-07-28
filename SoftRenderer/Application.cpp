@@ -57,17 +57,21 @@ int main(){
 	std::vector<shared_ptr<Model>> models;
 	{
 	//	models.push_back(make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuabody.obj"));
-	//	/*models.back()->diffusemap = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuabody_diffuse.tga");*/
+	//	models.back()->diffusemap = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuabody_diffuse.tga");
 
 	///*	models[1] = make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuaface.obj");*/
 	//	/*models[1]->diffusemap = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuaface_diffuse.tga");*/
 
 	//	models.push_back(make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuahair.obj"));
-	//	/*models.back()->diffusemap = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuahair_diffuse.tga");*/
+	//	models.back()->diffusemap = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuahair_diffuse.tga");
 
 	//	models.push_back(make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuacloak.obj"));
-	//	/*models.back()->diffusemap = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuacloak_diffuse.tga");*/
-		models.push_back(make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/luciya.obj"));
+	//	models.back()->diffusemap = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/fuhua/fuhuacloak_diffuse.tga");
+		/*models.push_back(make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/luciya.obj"));*/
+		models.push_back(make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/objects/backpack/backpack.obj"));
+		models.back()->diffusemap = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/objects/backpack/diffuse.jpg");
+		models.back()->occlusion_map = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/objects/backpack/ao.jpg");
+		models.back()->occlusion_map = new Texture("E:/c++/SoftRenderer/SoftRenderer/src/resource/objects/backpack/normal.png");
 	}
 
 	shared_ptr<IShader> shader = make_shared<PhongShader>();
