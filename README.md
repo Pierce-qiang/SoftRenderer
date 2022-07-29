@@ -15,7 +15,7 @@ This is a very tiny software rasterization applicaiton for understanding basic C
 ![result](./experience/result.gif)
 
  # Problem encountered
-![false interpolate] (./experience/FalseInterpolate_INVZ_View.gif)
+![falseInterpolate] (./experience/FalseInterpolate_INVZ_View.gif)
 
  - Finally, I found that it's the Perspective correct interpolation problem\
 ![Interpolation](./experience/Interpolation.jpg)\
@@ -24,7 +24,7 @@ This is a very tiny software rasterization applicaiton for understanding basic C
 But the error comes..
 
  - After fix bugs\
-![false interpolate] (./experience/TrueINTER_invz.gif)
+![TrueInter] (./experience/TrueINTER_invz.gif)
 
 # Reference
 https://github.com/SunXLei/SRender
