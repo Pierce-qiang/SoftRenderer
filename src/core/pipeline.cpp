@@ -1,4 +1,8 @@
 #include "../include/pipeline.h"
+//#include <mutex>
+//
+//std::mutex frameMutex;
+//std::mutex zbufferMutex;
 
 static void set_color(unsigned char* framebuffer, int x, int y, Color3 color, bool inversey = true)
 {
@@ -8,9 +12,12 @@ static void set_color(unsigned char* framebuffer, int x, int y, Color3 color, bo
 		index = ((WINDOW_HEIGHT - y - 1) * WINDOW_WIDTH + x) * 4;
 	else
 		index = (y * WINDOW_WIDTH + x) * 4;
+	{
+		//std::lock_guard<std::mutex> lcg(frameMutex);
+		for (int i = 0; i < 3; i++)
+			framebuffer[index + i] = float_clamp(static_cast<int>(color[i] * 255.999), 0, 255);
 
-	for (int i = 0; i < 3; i++)
-		framebuffer[index + i] = float_clamp(static_cast<int>(color[i] * 255.999), 0, 255);
+	}
 }
 
 
@@ -316,8 +323,13 @@ static void rasterizeSingleThread(vec4* clipcoord_attri, unsigned char* framebuf
 
 			int ind = get_index(x, y, width, height);
 
-			if (zbuffer[ind] < depth) continue;
-			zbuffer[ind] = depth;
+			{
+				//std::lock_guard<std::mutex> lck(zbufferMutex);
+				if (zbuffer[ind] < depth) continue;
+				zbuffer[ind] = depth;
+
+			}
+
 			auto color = shader->fragment_shader(alpha, beta, gamma);
 			set_color(framebuffer, x, y, color);
 		}

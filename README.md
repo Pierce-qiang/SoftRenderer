@@ -1,5 +1,20 @@
 # SoftRenderer
-Learning Software Rasterization 
+This is a very tiny software rasterization applicaiton for understanding basic CG knowledge 
+
+ #Main Features
+ - movable camera
+ - Perspective correct interpolation
+ - Back-face culling
+ - Homogeneous clipping
+ - Back-face culling
+ - Blinn-Phong shading
+ - Cubemap skybox
+ - basic obj model loader
+
+ # Result
+![result](./experience/result.gif)
+
+
 # Plan
  - math lib
  - platform io
@@ -8,10 +23,11 @@ Learning Software Rasterization
  - rasterize func
  - texture load
  - basic model, basic shader to handle data
+ - fix bugs
  - complete pipeline including backface clipping, clipping space interpolate and clipping, larger z clipping    
  - fix bugs
---------------------------- current --------------------
  - load complex model and their resources
  - Blin-PhongShader and PBR shader
+--------------------------- current --------------------
  - try TBB or any multi thread methods to speed up
  - ...

@@ -31,15 +31,15 @@ int main(){
 	float print_time = platform_get_time();
 
 	std::vector<shared_ptr<Model>> models;
-	//models.push_back(make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/backpack/backpack.obj"));
+	models.push_back(make_shared<Model>("../src/resource/backpack/backpack.obj"));
 
-	models.push_back(shared_ptr<Model>(createSmileface("E:/c++/SoftRenderer/SoftRenderer/src/resource/awesomeface.jpg")));
+	//models.push_back(shared_ptr<Model>(createSmileface("../src/resource/awesomeface.jpg")));
 	
 
 
 	shared_ptr<IShader> shader = make_shared<PhongShader>();
 	shader->payload.camera = camera;
-	CubeMap* cubemap = new CubeMap("E:/c++/SoftRenderer/SoftRenderer/src/resource/skybox/");
+	CubeMap* cubemap = new CubeMap("../src/resource/skybox/");
 
 	shared_ptr<SkyBox> skybox = make_shared<SkyBox>(cubemap);
 
@@ -61,16 +61,13 @@ int main(){
 		//draw
 		for (int i = 0; i < models.size(); ++i) {
 			shader->payload.model = models[i];
+
 			for (int j = 0; j < models[i]->nfaces(); j++)
 			{
 				draw_triangles(framebuffer, zbuffer, shader.get(), j);
 			}
 		}
-		/*shader->payload.model = model;
-		for (int j = 0; j < model->nfaces(); j++)
-		{
-			draw_triangles(framebuffer, zbuffer, shader.get(), j);
-		}*/
+
 		draw_skybox(framebuffer, zbuffer, skybox.get(), camera.get());
 
 
