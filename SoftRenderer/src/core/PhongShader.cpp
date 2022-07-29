@@ -43,9 +43,9 @@ void PhongShader::vertex_shader(int nfaces, int nvertex)
 	payload.clipcoord_attri[nvertex] = payload.mvp_matrix * temp_vert;
 	payload.in_clipcoord[nvertex] = payload.clipcoord_attri[nvertex];
 
-	temp_vert = payload.model_matrix * temp_vert;
+	/*temp_vert = payload.model_matrix * temp_vert;
 	temp_normal = payload.model_matrix_inv_trans * temp_normal;
-	assert(abs(temp_normal[3]-1) < EPSILON);
+	assert(abs(temp_normal[3]-1) < EPSILON);*/
 	// only model matrix can change normal vector in world space ( Normal Matrix: tranverse(inverse(model)) )
 	for (int i = 0; i < 3; i++)
 	{

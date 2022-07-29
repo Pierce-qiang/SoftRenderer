@@ -1,7 +1,7 @@
 #include <iostream>
 #include <memory>
 #include "./src/platform/win32.h"
-
+#include "./src/include/SkyBox.h"
 #include "./src/include/camera.h"
 #include "./src/include/params.h"
 #include "./src/include/pipeline.h"
@@ -31,12 +31,17 @@ int main(){
 	float print_time = platform_get_time();
 
 	std::vector<shared_ptr<Model>> models;
-	models.push_back(make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/backpack/backpack.obj"));
+	//models.push_back(make_shared<Model>("E:/c++/SoftRenderer/SoftRenderer/src/resource/backpack/backpack.obj"));
 
 	models.push_back(shared_ptr<Model>(createSmileface("E:/c++/SoftRenderer/SoftRenderer/src/resource/awesomeface.jpg")));
+	
+
 
 	shared_ptr<IShader> shader = make_shared<PhongShader>();
 	shader->payload.camera = camera;
+	CubeMap* cubemap = new CubeMap("E:/c++/SoftRenderer/SoftRenderer/src/resource/skybox/");
+
+	shared_ptr<SkyBox> skybox = make_shared<SkyBox>(cubemap);
 
 	while (!window->is_close)
 	{
@@ -66,6 +71,8 @@ int main(){
 		{
 			draw_triangles(framebuffer, zbuffer, shader.get(), j);
 		}*/
+		draw_skybox(framebuffer, zbuffer, skybox.get(), camera.get());
+
 
 
 		//calculate frames and time

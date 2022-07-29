@@ -16,7 +16,7 @@ static void set_color(unsigned char* framebuffer, int x, int y, Color3 color, bo
 
 static int get_index(int x, int y,int width, int height)
 {
-	return (width - y - 1) * height + x;
+	return (height - y - 1) * width + x;
 }
 
 static bool is_back_facing(vec3* screen_pos) {
@@ -66,7 +66,7 @@ static bool is_inside_plane(clip_plane c_plane, vec4 vertex)
 	switch (c_plane)
 	{
 	case W_PLANE:
-		return vertex.w() <= -EPSILON;
+		return vertex.w() <= -Nearplane;
 	case X_RIGHT:
 		return vertex.x() >= vertex.w();
 	case X_LEFT:
@@ -87,7 +87,7 @@ static bool is_inside_plane(clip_plane c_plane, vec4 vertex)
 	switch (c_plane)
 	{
 	case W_PLANE:
-		return vertex.w() >= EPSILON; //avoid divide zero  W = EPSILON
+		return vertex.w() >= Nearplane; //avoid divide zero  W = EPSILON
 	case X_RIGHT:
 		return vertex.x() <= vertex.w();
 	case X_LEFT:
@@ -113,7 +113,7 @@ static float get_intersect_ratio(vec4 prev, vec4 curv, clip_plane c_plane)
 	switch (c_plane)
 	{
 	case W_PLANE:
-		return (prev.w() + EPSILON) / (prev.w() - curv.w());
+		return (prev.w() + Nearplane) / (prev.w() - curv.w());
 	case X_RIGHT:
 		return (prev.w() - prev.x()) / ((prev.w() - prev.x()) - (curv.w() - curv.x()));
 	case X_LEFT:
@@ -133,7 +133,7 @@ static float get_intersect_ratio(vec4 prev, vec4 curv, clip_plane c_plane)
 	switch (c_plane)
 	{
 	case W_PLANE:
-		return (prev.w() - EPSILON ) / (prev.w() - curv.w());
+		return (prev.w() - Nearplane) / (prev.w() - curv.w());
 	case X_RIGHT:
 		return (prev.w() - prev.x()) / ((prev.w() - prev.x()) - (curv.w() - curv.x()));
 	case X_LEFT:
@@ -259,8 +259,8 @@ static void rasterizeSingleThread(vec4* clipcoord_attri, unsigned char* framebuf
 	// viewport transformation
 	for (int i = 0; i < 3; i++)
 	{
-		screen_pos[i][0] = 0.5 * (width - 1) * (ndc_pos[i][0] + 1.0);
-		screen_pos[i][1] = 0.5 * (height - 1) * (ndc_pos[i][1] + 1.0);
+		screen_pos[i][0] = 0.5 * (ndc_pos[i][0] + 1.0) * (width - 1);
+		screen_pos[i][1] = 0.5 * (ndc_pos[i][1] + 1.0) * (height - 1);
 		//screen_pos[i][2] = ndc_pos[i][2]*0.5+0.5; // 0~1
 #ifdef INVZ
 #ifdef ViewZ
@@ -297,9 +297,11 @@ static void rasterizeSingleThread(vec4* clipcoord_attri, unsigned char* framebuf
 	int ys = max((int)ymin, 0), ye = min((int)ymax, height - 1);
 	for (int x = xs; x <= xe; ++x) {
 		for (int y = ys; y <= ye; ++y) {
-			auto bari = Barycentric(x + 0.5, y + 0.5, screen_pos);
+			auto bari = Barycentric(float(x + 0.5), float(y + 0.5), screen_pos);
 			float alpha = bari[0], beta = bari[1], gamma = bari[2];
-			
+			// add EPSILON can avoid some aliasing
+			if (alpha < -EPSILON || beta < -EPSILON || gamma < -EPSILON) continue;
+
 #ifdef TRUEINTER
 			float normalizer = 1.0 / (alpha / clipcoord_attri[0].w() + beta / clipcoord_attri[1].w() + gamma / clipcoord_attri[2].w());
 
@@ -310,8 +312,7 @@ static void rasterizeSingleThread(vec4* clipcoord_attri, unsigned char* framebuf
 			float depth = bari[3];
 #endif // 
 
-			// add EPSILON can avoid some aliasing
-			if (alpha < -EPSILON || beta < -EPSILON || gamma < -EPSILON) continue;
+			
 
 			int ind = get_index(x, y, width, height);
 
@@ -366,4 +367,27 @@ void draw_triangles(unsigned char* framebuffer, float* zbuffer, IShader* shader,
 #else
 	rasterizeSingleThread(shader->payload.clipcoord_attri, framebuffer, zbuffer, shader);
 #endif
+}
+
+void draw_skybox(unsigned char* framebuffer, float* zbuffer, SkyBox* skybox, Camera* camera)
+{
+	int width = window->width;
+	int height = window->height;
+	for (int x = 0; x < width; ++x) {
+		for (int y = 0; y < height; ++y) {
+			int ind = get_index(x, y, width, height);
+#ifdef ViewZ
+			if (zbuffer[ind] != Farplane) continue;
+#else
+			if (zbuffer[ind] != 1.0) continue;
+#endif // ViewZ
+			vec2 uv = { (x+0.5f) / (width), (y+0.5f) / (height) };
+
+			vec3 dir = camera->generateDir(uv);
+
+			Color3 color = skybox->sample(dir);
+
+			set_color(framebuffer, x, y, color );
+		}
+	}
 }

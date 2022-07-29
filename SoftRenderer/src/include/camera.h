@@ -10,6 +10,8 @@ public:
 	mat4 get_ViewMatrix()const;
 	mat4 get_VPMatrix()const;
 	void handle_event();
+	vec3 generateDir(vec2 uv)const;
+
 public:
 	Point3 eye;
 	Point3 target;

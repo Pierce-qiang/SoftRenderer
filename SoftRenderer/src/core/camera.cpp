@@ -129,3 +129,15 @@ void Camera::handle_event()
 
 	handle_key_events();
 }
+
+vec3 Camera::generateDir(vec2 uv) const
+{
+	vec2 offuv = uv * 2 - vec2(1,1);
+	vec3 toTar = target - eye;
+	toTar = unit_vector(toTar);
+	vec3 res = toTar;
+	float h = tan(vfov / 180 * PI * 0.5f);
+	res += uv[0] * h * aspect * x;
+	res += uv[1] * h * y;
+	return res;
+}
