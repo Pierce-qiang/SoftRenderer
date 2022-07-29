@@ -15,16 +15,16 @@ This is a very tiny software rasterization applicaiton for understanding basic C
 ![result](./experience/result.gif)
 
  # Problem encountered
-![falseInterpolate] (./experience/FalseInterpolate_INVZ_View.gif)
+![falseInterpolate](./experience/FalseInter.gif)
 
  - Finally, I found that it's the Perspective correct interpolation problem\
-![Interpolation](./experience/FalseInter.gif)\
+![Interpolation](./experience/Interpolation.jpg)\
  To be faster, I put the Zt in the parenthesis, which means I use alpha' = alpha / Za * Zt \
  In this way, I will no longer care the Perspective correct, just use alpha', beta', gamma' to compute\
 But the error comes..
 
  - After fix bugs\
-![TrueInter] (./experience/TrueInter.gif)
+![TrueInter](./experience/TrueInter.gif)
 
 # Reference
 https://github.com/SunXLei/SRender
