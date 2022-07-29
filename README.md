@@ -18,13 +18,13 @@ This is a very tiny software rasterization applicaiton for understanding basic C
 ![falseInterpolate] (./experience/FalseInterpolate_INVZ_View.gif)
 
  - Finally, I found that it's the Perspective correct interpolation problem\
-![Interpolation](./experience/Interpolation.jpg)\
+![Interpolation](./experience/FalseInter.gif)\
  To be faster, I put the Zt in the parenthesis, which means I use alpha' = alpha / Za * Zt \
  In this way, I will no longer care the Perspective correct, just use alpha', beta', gamma' to compute\
 But the error comes..
 
  - After fix bugs\
-![TrueInter] (./experience/TrueINTER_invz.gif)
+![TrueInter] (./experience/TrueInter.gif)
 
 # Reference
 https://github.com/SunXLei/SRender
